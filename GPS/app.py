@@ -15,12 +15,12 @@ if not all([ROBOFLOW_API_KEY, ESP32_CAM_URL, ESP32_LOCATOR_URL]):
 os.makedirs("static/captures", exist_ok=True)
 
 DETECTION_MODELS = {
-    "soldier_detection": {"name": "Soldier", "models": [{"id": "civil-soldier/1", "weight": 0.4}, {"id": "soldier-ijybv-wnxqu/1", "weight": 0.6}], "conf": 0.75, "color": (0, 255, 0)},
-    "landmine_detection": {"name": "Landmine", "models": [{"id": "landmine-k5eze-ylmos/1", "weight": 1}], "conf": 0.60, "color": (0, 0, 255)},
-    "aircraft_detection": {"name": "Aircraft", "models": [{"id": "drone-uav-detection/3", "weight": 0.5}, {"id": "fighter-jet-detection/1", "weight": 0.5}], "conf": 0.75, "color": (255, 0, 0)},
-    "tank_detection": {"name": "Tank", "models": [{"id": "tank-sl17s/1", "weight": 1}], "conf": 0.75, "color": (0, 255, 255)},
-    "military_equipment": {"name": "Equipment", "models": [{"id": "military-f5tbj/1", "weight": 0.5}, {"id": "weapon-detection-ssvfk/1", "weight": 0.5}], "conf": 0.75, "color": (255, 0, 255)},
-    "gun_detection": {"name": "Gun", "models": [{"id": "weapon-detection-ssvfk/1", "weight": 0.5}, {"id": "gun-d8mga/2", "weight": 0.5}], "conf": 0.75, "color": (128, 0, 128)}
+    "soldier_detection": {"name": "Soldier", "models": [{"id": "civil-soldier/1", "weight": 0.4}, {"id": "soldier-ijybv-wnxqu/1", "weight": 0.6}], "conf": 0.84, "color": (0, 255, 0)},
+    "landmine_detection": {"name": "Landmine", "models": [{"id": "landmine-k5eze-ylmos/1", "weight": 1}], "conf": 0.75, "color": (0, 0, 255)},
+    "aircraft_detection": {"name": "Aircraft", "models": [{"id": "drone-uav-detection/3", "weight": 0.5}, {"id": "fighter-jet-detection/1", "weight": 0.5}], "conf": 0.80, "color": (255, 0, 0)},
+    "tank_detection": {"name": "Tank", "models": [{"id": "tank-sl17s/1", "weight": 1}], "conf": 0.83, "color": (0, 255, 255)},
+    "military_equipment": {"name": "Equipment", "models": [{"id": "military-f5tbj/1", "weight": 0.5}, {"id": "weapon-detection-ssvfk/1", "weight": 0.5}], "conf": 0.70, "color": (255, 0, 255)},
+    "gun_detection": {"name": "Gun", "models": [{"id": "weapon-detection-ssvfk/1", "weight": 0.5}, {"id": "gun-d8mga/2", "weight": 0.5}], "conf": 0.72, "color": (128, 0, 128)}
 }
 
 app = Flask(__name__)
