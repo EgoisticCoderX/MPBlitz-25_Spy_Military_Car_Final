@@ -1,0 +1,11 @@
+{
+    "timestamp": "20250728_154738",
+    "threats": [
+        "Gun",
+        "Equipment"
+    ],
+    "location": {
+        "lat": 22.493218,
+        "lon": 88.319178
+    }
+}
