@@ -4,109 +4,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ESP32 Detection System</title>
+    <title>Tactical Detection System</title>
+    <!-- LeafletJS for Map -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin=""/>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
     <style>
-        body, html { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: #1e3c72; margin: 0; padding: 20px; color: white; }
-        .container { max-width: 1200px; margin: 0 auto; }
-        h1 { text-align: center; margin-bottom: 20px; text-shadow: 2px 2px 4px rgba(0,0,0,0.5); }
-        .stream-container { position: relative; text-align: center; margin-bottom: 20px; min-height: 480px; background-color: #000; border-radius: 15px; }
-        #videoStream { width: 100%; max-width: 800px; border-radius: 15px; }
-        .control-panel { display: flex; flex-wrap: wrap; justify-content: center; gap: 15px; padding: 20px; background: rgba(0,0,0,0.3); border-radius: 10px; align-items: center; }
-        .control-group { display: flex; flex-direction: column; align-items: center; }
-        .control-group label { font-weight: 700; margin-bottom: 5px; }
-        select, .btn { padding: 12px 20px; border: none; border-radius: 8px; font-size: 16px; font-weight: 700; cursor: pointer; transition: all .3s ease; }
-        .btn:hover:enabled { transform: translateY(-2px); box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        :root {
+            --bg-dark: #1a1a1a;
+            --panel-bg: #2c2c2c;
+            --border-color: #444;
+            --primary-green: #2ecc71;
+            --primary-red: #e74c3c;
+            --text-light: #ecf0f1;
+            --text-dark: #bdc3c7;
+            --font-main: 'Segoe UI',-apple-system,BlinkMacSystemFont,Roboto,sans-serif;
+            --font-mono: 'Fira Code', 'Consolas', monospace;
+        }
+        body, html { font-family: var(--font-main); background: var(--bg-dark); margin: 0; padding: 0; color: white; display: flex; flex-direction: column; height: 100vh; }
+        .header { background: var(--panel-bg); padding: 10px 20px; text-align: center; border-bottom: 2px solid var(--border-color); }
+        .header h1 { margin: 0; font-size: 1.5em; color: var(--primary-green); }
+        .main-container { display: flex; flex: 1; min-height: 0; }
+        .left-panel { flex: 3; display: flex; flex-direction: column; padding: 20px; gap: 20px; }
+        .right-panel { flex: 1; background: var(--panel-bg); border-left: 2px solid var(--border-color); padding: 20px; display: flex; flex-direction: column; gap: 20px; }
+        .stream-container { position: relative; width: 100%; padding-top: 75%; /* 4:3 Aspect Ratio */ background-color: #000; border-radius: 8px; overflow: hidden; }
+        #videoStream { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; }
+        #threat-banner { display: none; position: absolute; bottom: 0; left: 0; width: 100%; background: linear-gradient(45deg, rgba(204,0,0,0.9), rgba(255,68,68,0.9)); padding: 15px; z-index: 100; text-align: center; border-top: 3px solid white; }
+        #threat-banner h3 { margin: 0 0 5px; font-size: 1.4em; }
+        #threat-banner p { margin: 0 0 15px; }
+        .btn-continue { padding: 10px 20px; background: white; color: black; border: none; font-weight: bold; border-radius: 5px; cursor: pointer; }
+        .control-panel, .map-container, .info-panel { background: var(--panel-bg); padding: 15px; border-radius: 8px; }
+        .control-panel h2, .map-container h2, .info-panel h2 { margin-top: 0; font-size: 1.2em; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; margin-bottom: 15px; color: var(--text-light); }
+        .controls { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; }
+        .btn { padding: 12px; border: none; border-radius: 5px; font-size: 1em; font-weight: 700; cursor: pointer; transition: all .2s ease; text-align: center; }
+        .btn:hover:enabled { filter: brightness(1.2); }
         .btn:disabled { opacity: 0.5; cursor: not-allowed; }
-        .btn-primary { background: #4CAF50; color: #fff; }
-        .btn-danger { background: #f44336; color: #fff; }
-        .btn-secondary { background: #007bff; color: white; }
-        .btn-continue { background: #fff; color: #000; font-weight: bold; }
-        #threat-banner { display: none; position: absolute; bottom: 30px; left: 0; right: 0; margin: auto; width: 95%; max-width: 760px; background: linear-gradient(45deg, rgba(204,0,0,0.9), rgba(255,68,68,0.9)); padding: 10px; z-index: 100; text-align: center; border-top: 3px solid white; border-radius: 12px; box-shadow: 0 0 20px rgba(0,0,0,0.5); }
-        #threat-banner h3 { margin: 0; } #threat-banner p { margin: 5px 0 10px 0; font-size: 0.9em; }
+        .btn-start { background: var(--primary-green); color: black; }
+        .btn-stop { background: var(--primary-red); color: white; }
+        .btn-secondary { background: #3498db; color: white; grid-column: span 2; }
+        .control-group { display: flex; flex-direction: column; gap: 8px; grid-column: span 2; }
+        label { font-weight: bold; color: var(--text-dark); }
+        select, input[type="range"] { width: 100%; background: #333; border: 1px solid var(--border-color); color: white; padding: 10px; border-radius: 5px; }
+        #map { height: 300px; border-radius: 8px; background-color: #333; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>🛡️ ESP32 Military Detection System</h1>
-        <div class="stream-container">
-            <img id="videoStream" alt="Live Stream">
-            <div id="threat-banner">
-                <h3>🚨 THREAT DETECTED! 🚨</h3>
-                <p>Stream paused. Image and location saved to captures.</p>
-                <button class="btn btn-continue" onclick="resumeStream()">CONTINUE</button>
+    <header class="header"><h1>🛡️ TACTICAL DETECTION & SURVEILLANCE SYSTEM</h1></header>
+    <main class="main-container">
+        <div class="left-panel">
+            <div class="stream-container">
+                <img id="videoStream" alt="Live Stream from ESP32-CAM">
+                <div id="threat-banner">
+                    <h3>🚨 THREAT DETECTED! 🚨</h3>
+                    <p id="threat-details">Stream paused. Analyzing coordinates...</p>
+                    <button class="btn-continue" onclick="resumeStream()">SECURE & RESUME</button>
+                </div>
+            </div>
+            <div class="control-panel">
+                <h2>SYSTEM CONTROL</h2>
+                <div class="controls">
+                    <button class="btn btn-start" id="startBtn" onclick="startStream()">▶ START SYSTEM</button>
+                    <button class="btn btn-stop" id="stopBtn" onclick="stopStream()" disabled>■ STOP SYSTEM</button>
+                    <button class="btn btn-secondary" id="capturesBtn" onclick="viewCaptures()" disabled>VIEW CAPTURES</button>
+                    <div class="control-group">
+                        <label for="modelSelect">Detection Target</label>
+                        <select id="modelSelect" onchange="setActiveModel()">
+                            <option value="all">🎯 All Targets</option>
+                            {% for model in models %}
+                                <option value="{{ model.id }}">{{ model.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="control-group">
+                        <label for="brightnessSlider">💡 IR Flashlight Brightness</label>
+                        <input type="range" id="brightnessSlider" min="0" max="255" value="0" oninput="setBrightness(this.value)">
+                    </div>
+                </div>
             </div>
         </div>
-        <div class="control-panel">
-            <button class="btn btn-primary" id="startBtn" onclick="startStream()">START</button>
-            <button class="btn btn-danger" id="stopBtn" onclick="stopStream()" disabled>STOP</button>
-            <button class="btn btn-secondary" id="capturesBtn" onclick="viewCaptures()" disabled>View Captures</button>
-            <div class="control-group">
-                <label for="modelSelect">Target</label>
-                <select id="modelSelect" onchange="setActiveModel()">
-                    <option value="all">🎯 All Threats</option>
-                    {% for key, model in models.items() %}
-                        <option value="{{ key }}">{{ model.name }}</option>
-                    {% endfor %}
-                </select>
+        <aside class="right-panel">
+            <div class="map-container">
+                <h2>EVENT LOCATION</h2>
+                <div id="map"></div>
             </div>
-            <div class="control-group">
-                <label>💡 Flashlight</label>
-                <input type="range" id="brightnessSlider" min="0" max="255" value="0" onchange="setBrightness(this.value)">
-            </div>
-        </div>
-    </div>
+        </aside>
+    </main>
     <script>
-        const startBtn = document.getElementById('startBtn'), stopBtn = document.getElementById('stopBtn'), capturesBtn = document.getElementById('capturesBtn'), banner = document.getElementById('threat-banner');
+        const startBtn = document.getElementById('startBtn'), stopBtn = document.getElementById('stopBtn');
+        const capturesBtn = document.getElementById('capturesBtn'), banner = document.getElementById('threat-banner');
+        const threatDetailsEl = document.getElementById('threat-details');
         let statusCheckInterval = null;
+        let map, marker;
+
+        function initMap() {
+            map = L.map('map').setView([20, 0], 2); // Default view
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+                maxZoom: 18,
+            }).addTo(map);
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
+            initMap();
             document.getElementById('videoStream').src = `/video_feed?t=${Date.now()}`;
         });
 
-        function updateSystemState(state) {
+        function updateSystemState(data) {
+            const state = data.state;
             const isOffline = (state === 'OFFLINE');
             startBtn.disabled = !isOffline;
             stopBtn.disabled = isOffline;
             capturesBtn.disabled = isOffline;
             banner.style.display = (state === 'PAUSED_FOR_CONFIRMATION') ? 'block' : 'none';
+
+            if (state === 'PAUSED_FOR_CONFIRMATION') {
+                const threats = data.threats ? data.threats.join(', ') : 'Unknown Threat';
+                threatDetailsEl.textContent = `Threats: ${threats}`;
+                if (marker) map.removeLayer(marker);
+                if (data.location && data.location.lat) {
+                    const latlng = [data.location.lat, data.location.lon];
+                    map.setView(latlng, 15);
+                    marker = L.marker(latlng).addTo(map).bindPopup(`<b>Threat Detected</b><br>${threats}`).openPopup();
+                } else {
+                    threatDetailsEl.textContent += " | Location: No GPS Fix";
+                }
+            }
         }
 
         async function apiRequest(endpoint, options={}) {
-            const response = await fetch(endpoint, options);
-            if (!response.ok) {
-                const err = await response.json().catch(()=>({message:"Request failed"}));
-                throw new Error(err.message);
+            try {
+                const response = await fetch(endpoint, options);
+                const data = await response.json();
+                if (!response.ok) throw new Error(data.message || "Request failed");
+                return data;
+            } catch (error) {
+                console.error(`API request to ${endpoint} failed:`, error);
+                throw error;
             }
-            return response.json();
         }
-
+        
         async function startStream() {
             try {
-                updateSystemState('CONNECTING');
                 await apiRequest('/start_stream', {method: 'POST'});
+                document.getElementById('videoStream').src = `/video_feed?t=${Date.now()}`; // Refresh stream src
                 startStatusPolling();
-            } catch (error) { console.error("Start failed:", error); updateSystemState('OFFLINE'); }
+            } catch (error) { updateSystemState({state: 'OFFLINE'}); }
         }
         async function stopStream() {
             stopStatusPolling();
             try { await apiRequest('/stop_stream', {method: 'POST'}); }
             catch (error) { console.error("Stop failed:", error); }
-            updateSystemState('OFFLINE');
+            finally { updateSystemState({state: 'OFFLINE'}); document.getElementById('videoStream').src = ""; }
         }
         function viewCaptures() { window.open('/captures', '_blank'); }
-        async function setActiveModel() { try { await apiRequest('/set_active_model',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model_key:document.getElementById('modelSelect').value})}); } catch(e){} }
-        async function setBrightness(level) { try { await apiRequest('/set_brightness',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:level})}); } catch(e){} }
-        async function resumeStream() { try { await apiRequest('/resume_stream', {method: 'POST'}); } catch (error) {} }
+        async function setActiveModel() { await apiRequest('/set_active_model',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model_id:document.getElementById('modelSelect').value})}); }
+        async function setBrightness(level) { await apiRequest('/set_brightness',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({level:level})}); }
+        async function resumeStream() { await apiRequest('/resume_stream', {method: 'POST'}); if (marker) map.removeLayer(marker); }
+
         function startStatusPolling() {
             stopStatusPolling();
+            updateSystemState({state: 'CONNECTING'}); // Initial state while waiting for first poll
             statusCheckInterval = setInterval(async () => {
                 try {
                     const data = await apiRequest('/get_status');
-                    updateSystemState(data.state);
+                    updateSystemState(data);
                     if (data.state === 'OFFLINE') stopStatusPolling();
-                } catch (error) { updateSystemState('OFFLINE'); }
-            }, 1500);
-        }
+                } catch (error) {
+                    stopStatusPolling();
+                    updateSystemState({state: 'OFFLINE'});
+                }
+            }, 1000); // Poll every 1 second for faster updates
+        } 
         function stopStatusPolling() { if(statusCheckInterval) clearInterval(statusCheckInterval); statusCheckInterval = null; }
     </script>
 </body>
