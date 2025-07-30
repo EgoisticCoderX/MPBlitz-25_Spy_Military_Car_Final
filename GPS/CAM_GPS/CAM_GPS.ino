@@ -3,8 +3,8 @@
 #include <WebServer.h>
 #include "esp_camera.h"
 
-const char* ssid = "MySpyCar";
-const char* password = "123456789";
+const char* ssid = "AsishJIOBroadband";
+const char* password = "asish123";
 
 #define PWDN_GPIO_NUM 32
 #define RESET_GPIO_NUM -1
