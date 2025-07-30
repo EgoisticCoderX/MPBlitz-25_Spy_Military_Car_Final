@@ -1,0 +1,29 @@
+# Core web framework for running the application server
+flask==2.3.3
+
+# For making HTTP requests to external APIs (Roboflow)
+requests==2.31.0
+
+# Fundamental package for numerical operations with image arrays
+numpy==1.26.2
+
+# Computer vision library for image processing and drawing bounding boxes
+# The 'headless' version is for servers without a graphical interface
+opencv-python-headless==4.9.0.80
+
+# Reads key-value pairs from a .env file and loads them as environment variables
+python-dotenv==1.0.1
+
+# Google's official client library for the Gemini API (for Stage 2 AI verification)
+google-generativeai==0.5.4
+
+# Python Imaging Library, used for image manipulation and reading metadata
+# It's a dependency for google-generativeai and our GPS function
+Pillow==10.3.0
+
+# A dedicated library for easily reading and writing EXIF metadata from images,
+# which is where GPS location data is stored.
+piexif==1.1.3
+
+#pip install -r requirements.txt
+#pip3 install -r requirements.txt
