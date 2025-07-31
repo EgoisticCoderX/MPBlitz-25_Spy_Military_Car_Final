@@ -3,52 +3,46 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Captured Detections</title>
+    <title>Archived Threat Captures</title>
     <style>
-        :root {
-            --bg-dark: #1a1a1a;
-            --panel-bg: #2c2c2c;
-            --border-color: #444;
-            --primary-green: #2ecc71;
-            --text-light: #ecf0f1;
-            --text-dark: #bdc3c7;
-        }
-        body { font-family: 'Segoe UI', -apple-system, BlinkMacSystemFont, "Roboto", sans-serif; background-color: var(--bg-dark); color: white; margin: 0; padding: 20px; }
-        h1 { text-align: center; border-bottom: 2px solid var(--primary-green); padding-bottom: 15px; margin-bottom: 30px; }
-        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: 25px; }
-        .capture { background: var(--panel-bg); border-radius: 8px; overflow: hidden; box-shadow: 0 4px 15px rgba(0,0,0,0.3); border: 1px solid var(--border-color); transition: transform 0.2s ease, box-shadow 0.2s ease; }
-        .capture:hover { transform: translateY(-5px); box-shadow: 0 8px 25px rgba(0,0,0,0.5); }
-        .capture img { width: 100%; display: block; border-bottom: 1px solid var(--border-color); }
-        .capture-info { padding: 20px; }
-        .capture-info h3 { margin: 0 0 10px; font-size: 1.2em; color: var(--text-light); }
-        .capture-info p { margin: 8px 0; color: var(--text-dark); }
-        .capture-info strong { color: var(--text-light); }
-        .capture-info a { color: #3498db; font-weight: bold; text-decoration: none; }
+        :root { --bg: #121212; --panel: #1e1e1e; --border: #333; --green: #28a745; --red: #dc3545; --text: #e0e0e0; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: var(--bg); color: var(--text); margin: 0; padding: 20px; }
+        h1 { text-align: center; color: var(--green); border-bottom: 2px solid var(--border); padding-bottom: 20px; margin-bottom: 30px; }
+        .gallery { display: grid; grid-template-columns: repeat(auto-fill, minmax(400px, 1fr)); gap: 20px; }
+        .capture-card { background: var(--panel); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; transition: transform 0.2s, box-shadow 0.2s; }
+        .capture-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px rgba(0,0,0,0.5); }
+        .capture-card img { display: block; width: 100%; }
+        .capture-info { padding: 15px; }
+        .capture-info h3 { margin: 0 0 10px; color: var(--red); font-size: 1.1rem; }
+        .capture-info p { margin: 5px 0; }
+        .capture-info strong { color: #ccc; }
+        .capture-info a { color: #3498db; text-decoration: none; font-weight: bold; }
         .capture-info a:hover { text-decoration: underline; }
-        .no-captures { text-align: center; font-size: 1.2em; padding: 50px; background-color: var(--panel-bg); border-radius: 8px; }
-        a.nav-back { display: block; text-align: center; margin: 30px auto; padding: 12px 25px; background: var(--primary-green); color: black; font-weight: bold; text-decoration: none; border-radius: 5px; width: fit-content; }
+        .no-captures { text-align: center; font-size: 1.2em; padding: 50px; background-color: var(--panel); border-radius: 8px; }
+        a.nav-back { display: block; text-align: center; margin: 30px auto; padding: 12px 25px; background: var(--green); color: white; font-weight: bold; text-decoration: none; border-radius: 5px; width: fit-content; }
     </style>
 </head>
 <body>
-    <h1>Archived Threat Captures</h1>
+    <h1>🛡️ Archived Threat Captures</h1>
     <a href="/" class="nav-back">Back to Live Dashboard</a>
+    
     {% if captures %}
         <div class="gallery">
             {% for capture in captures %}
-            <div class="capture">
-                <a href="{{ url_for('static', filename='captures/' + capture.image_file) }}" target="_blank">
-                    <img src="{{ url_for('static', filename='captures/' + capture.image_file) }}" alt="Captured Threat Image">
+            <div class="capture-card">
+                <!-- KEY FIX: Use the pre-generated image_url directly -->
+                <a href="{{ capture.image_url }}" target="_blank">
+                    <img src="{{ capture.image_url }}" alt="Captured Threat Image">
                 </a>
                 <div class="capture-info">
-                    <h3>Threats: <strong style="color: #e74c3c;">{{ capture.threats }}</strong></h3>
-                    <p><strong>File:</strong> {{ capture.image_file }}</p>
+                    <h3>Threat Signature: {{ capture.threats }}</h3>
                     <p><strong>Location:</strong>
                         {% if capture.location and capture.location.lat %}
                            <a href="https://maps.google.com/?q={{ capture.location.lat }},{{ capture.location.lon }}" target="_blank">
-                                {{ "%.5f"|format(capture.location.lat) }}, {{ "%.5f"|format(capture.location.lon) }} [View on Map]
+                                {{ "%.5f"|format(capture.location.lat) }}, {{ "%.5f"|format(capture.location.lon) }} (View on Map)
                            </a>
                         {% else %}
-                            N/A (No GPS Fix)
+                            No GPS Fix Available
                         {% endif %}
                     </p>
                 </div>
@@ -56,7 +50,7 @@
             {% endfor %}
         </div>
     {% else %}
-        <p class="no-captures">No threats have been captured yet.</p>
+        <p class="no-captures">No threats have been captured and archived yet.</p>
     {% endif %}
 </body>
-</html> 
+</html>
